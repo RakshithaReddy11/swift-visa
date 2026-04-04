@@ -1,0 +1,50 @@
+# Virtual Environments
+venv/
+venv311/
+env/
+ENV/
+.venv
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment Variables (NEVER commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Auto-generated Files
+*.log
+*.jsonl
+langgraph.json
+chroma_status.txt
+chroma_db_status.txt
+terminal_probe_bg.txt
+python_version.txt
+run_store_dataset.log
+eligibility_records.jsonl
+
+# Policy PDFs (remove from deployment)
+backend/data/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Build & Distribution
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Streamlit Cache
+.streamlit/
