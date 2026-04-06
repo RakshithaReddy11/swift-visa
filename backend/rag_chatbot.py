@@ -141,8 +141,6 @@ def _retry_wait_seconds(error_text, default_seconds=10):
 
 def _invoke_llm(prompt, retries=0):
     """Invoke LLM with Groq model failover."""
-    last_exc = None
-
     if LLM_PROVIDER != "groq":
         raise RuntimeError("LLM_PROVIDER must be set to groq.")
 
@@ -152,19 +150,12 @@ def _invoke_llm(prompt, retries=0):
             "Install with: pip install langchain-groq groq"
         )
 
-    for model_name in _ordered_unique(GROQ_MODEL_CANDIDATES):
-        try:
-            llm = ChatGroq(
-                groq_api_key=os.getenv("GROQ_API_KEY"),
-                model=model_name,
-                temperature=0,
-            )
-            return llm.invoke([HumanMessage(content=prompt)])
-        except Exception as exc:
-            last_exc = exc
-
-    # Return quickly on repeated failure so UI can show offline fallback.
-    raise last_exc
+    llm = ChatGroq(
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        model="llama-3.1-8b-instant",
+        temperature=0,
+    )
+    return llm.invoke([HumanMessage(content=prompt)])
 
 
 # ------------------ CONFIDENCE SCORE ------------------

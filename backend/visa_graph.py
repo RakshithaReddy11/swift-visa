@@ -1,12 +1,10 @@
 import os
-import importlib
 import chromadb
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
 from typing_extensions import TypedDict
 try:
-    _langchain_groq = importlib.import_module("langchain_groq")
-    ChatGroq = getattr(_langchain_groq, "ChatGroq", None)
+    from langchain_groq import ChatGroq
 except Exception:
     ChatGroq = None
 from langchain_core.messages import HumanMessage
@@ -126,7 +124,11 @@ def generate_answer(state: State):
     if ChatGroq is None:
         return {"answer": "Groq client is not installed. Run: pip install langchain-groq groq"}
 
-    llm = ChatGroq(model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"), temperature=0)
+    llm = ChatGroq(
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        model="llama-3.1-8b-instant",
+        temperature=0,
+    )
 
     prompt = f"""You are an expert visa assistant helping users understand visa policies.
 
