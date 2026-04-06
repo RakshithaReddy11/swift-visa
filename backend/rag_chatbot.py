@@ -73,7 +73,12 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
-# ------------------ DATABASE CONNECTION ------------------
+import subprocess
+
+# 🔥 Build DB automatically if not exists
+if not os.path.exists(CHROMA_PATH):
+    print("Building Chroma DB from PDFs...")
+    subprocess.run(["python", "store_dataset.py"])
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 
 # Load collections for different countries
