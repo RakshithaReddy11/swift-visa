@@ -8,26 +8,27 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-
+# ------------------ PATHS ------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
 USA_PATH = os.path.join(BASE_DIR, "data", "USA")
 UK_PATH = os.path.join(BASE_DIR, "data", "uk_visa")
 AUSTRALIA_PATH = os.path.join(BASE_DIR, "data", "AUSTRALIA")
 
 
-print("Chroma path:", CHROMA_PATH)
+# ------------------ CHROMA CLIENT ------------------
+# ✅ In-memory client (works on Streamlit Cloud)
+client = chromadb.Client()
 
-client = chromadb.PersistentClient(path=CHROMA_PATH)
 
-
+# ------------------ TEXT SPLITTER ------------------
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=300
 )
 
 
+# ------------------ PROCESS FUNCTION ------------------
 def process_country(country_name, data_path, collection_name):
 
     print("\n===============================")
@@ -42,13 +43,12 @@ def process_country(country_name, data_path, collection_name):
 
     documents = []
 
-    # Load PDFs
+    # -------- LOAD PDFs --------
     for file in sorted(os.listdir(data_path)):
 
         if file.lower().endswith(".pdf"):
 
             path = os.path.join(data_path, file)
-
             print("Loading:", file)
 
             try:
@@ -81,7 +81,7 @@ def process_country(country_name, data_path, collection_name):
 
     print("\nTotal pages loaded:", len(documents))
 
-    # Split into chunks
+    # -------- SPLIT TEXT --------
     chunks = splitter.split_documents(documents)
 
     print("Total chunks created:", len(chunks))
@@ -89,11 +89,10 @@ def process_country(country_name, data_path, collection_name):
     texts = [chunk.page_content for chunk in chunks]
     metadatas = [chunk.metadata for chunk in chunks]
 
-    # Stable IDs
+    # -------- CREATE IDS --------
     ids = []
 
     for idx, chunk in enumerate(chunks):
-
         source = chunk.metadata.get("source", "unknown")
         page = chunk.metadata.get("page", "na")
 
@@ -109,7 +108,6 @@ def process_country(country_name, data_path, collection_name):
     total = len(texts)
 
     for i in range(0, total, batch_size):
-
         end = i + batch_size
 
         print(f"Inserting chunks {i} → {min(end, total)} of {total}")
@@ -123,7 +121,8 @@ def process_country(country_name, data_path, collection_name):
     print(f"\n✅ {country_name} dataset stored successfully.\n")
 
 
-def main() -> None:
+# ------------------ MAIN ------------------
+def main():
 
     target = sys.argv[1].strip().lower() if len(sys.argv) > 1 else "all"
 
@@ -158,5 +157,6 @@ def main() -> None:
     print("\nAll selected datasets stored successfully!")
 
 
+# ------------------ RUN ------------------
 if __name__ == "__main__":
     main()
