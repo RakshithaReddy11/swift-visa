@@ -74,12 +74,20 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
 import subprocess
+import time
 
-# 🔥 Build DB automatically if not exists
+# Build DB if not exists
 if not os.path.exists(CHROMA_PATH):
     print("Building Chroma DB from PDFs...")
     subprocess.run(["python", "store_dataset.py"])
-client = chromadb.PersistentClient(path=CHROMA_PATH)
+    time.sleep(3)
+
+from chromadb.config import Settings
+
+client = chromadb.PersistentClient(
+    path=CHROMA_PATH,
+    settings=Settings(anonymized_telemetry=False)
+)
 
 # Load collections for different countries
 us_collection = client.get_or_create_collection("us_visa_collection")
