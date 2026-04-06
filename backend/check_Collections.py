@@ -7,7 +7,7 @@ collections = client.list_collections()
 print("\nAvailable Collections:\n")
 
 for col in collections:
-    collection = client.get_collection(col.name)
+    collection = client.get_or_create_collection(col.name)
 
     print("Collection Name:", col.name)
     print("Total Chunks:", collection.count())

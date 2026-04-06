@@ -11,7 +11,7 @@ def expand_query(question):
         response = _invoke_llm(prompt, retries=1)
     except Exception:
         return [question.strip()]
-    
+    # test change
     expansions = [question.strip()]  # Start with original question
     
     # Add generated variations line by line

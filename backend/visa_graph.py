@@ -17,8 +17,8 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
 client = chromadb.PersistentClient(path=CHROMA_PATH)
-us_collection = client.get_collection("us_visa_collection")
-uk_collection = client.get_collection("uk_visa_collection")
+us_collection = client.get_or_create_collection("us_visa_collection")
+uk_collection = client.get_or_create_collection("uk_visa_collection")
 australia_collection = client.get_or_create_collection("australia_collection")
 
 

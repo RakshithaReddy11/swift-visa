@@ -486,7 +486,7 @@ with col2:
 with col3:
     user_country = st.selectbox(
         "Nationality",
-        options=["USA", "UK", "Canada", "India", "Australia", "Other"],
+        options=["USA", "UK", "India", "Australia", "Other"],
         key="user_country",
     )
 
