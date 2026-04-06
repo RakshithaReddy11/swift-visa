@@ -143,9 +143,9 @@ To switch models, edit `GROQ_MODEL` in `.env`.
 
 ## Troubleshooting
 
-### "langchain-groq not installed"
+### "Groq SDK not installed"
 ```bash
-pip install langchain-groq groq
+pip install groq==0.9.0
 ```
 
 ### Streamlit port 8501 already in use

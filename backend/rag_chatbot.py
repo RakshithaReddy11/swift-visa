@@ -14,14 +14,14 @@ def expand_query(question):
     # Send prompt to configured LLM provider. If this call fails, continue with
     # original query.
     try:
-        response = _invoke_llm(prompt, retries=1)
+        response_text = _invoke_llm(prompt, retries=1)
     except Exception:
         return [question.strip()]
     # test change
     expansions = [question.strip()]  # Start with original question
     
     # Add generated variations line by line
-    for line in response.content.splitlines():
+    for line in response_text.splitlines():
         if line.strip():
             expansions.append(line.strip())
     
@@ -63,10 +63,9 @@ import chromadb
 from dotenv import load_dotenv
 
 try:
-    from langchain_groq import ChatGroq
+    from groq import Groq
 except Exception:
-    ChatGroq = None
-from langchain_core.messages import HumanMessage
+    Groq = None
 from langchain.memory import ConversationBufferMemory
 load_dotenv()   # Load API keys
 
@@ -140,22 +139,27 @@ def _retry_wait_seconds(error_text, default_seconds=10):
 
 
 def _invoke_llm(prompt, retries=0):
-    """Invoke LLM with Groq model failover."""
+    """Invoke LLM using direct Groq SDK."""
     if LLM_PROVIDER != "groq":
         raise RuntimeError("LLM_PROVIDER must be set to groq.")
 
-    if ChatGroq is None:
+    if Groq is None:
         raise RuntimeError(
-            "LLM_PROVIDER=groq requires langchain-groq. "
-            "Install with: pip install langchain-groq groq"
+            "LLM_PROVIDER=groq requires groq SDK. "
+            "Install with: pip install groq==0.9.0"
         )
 
-    llm = ChatGroq(
-        groq_api_key=os.getenv("GROQ_API_KEY"),
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY is missing.")
+
+    client = Groq(api_key=api_key)
+    response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}],
         temperature=0,
     )
-    return llm.invoke([HumanMessage(content=prompt)])
+    return response.choices[0].message.content
 
 
 # ------------------ CONFIDENCE SCORE ------------------
@@ -741,14 +745,14 @@ Rules:
 
     # Generate response
     try:
-        response = _invoke_llm(prompt, retries=1)
+        response_text = _invoke_llm(prompt, retries=1)
     except Exception as exc:
         err_text = str(exc)
         if _is_quota_error(err_text) or "not found" in err_text.lower() or "not supported" in err_text.lower():
             answer, eligibility_score = _offline_fallback_answer(question, context, country=country, visa_type=visa_type)
             return answer, eligibility_score, min(95.0, max(45.0, eligibility_score + 5.0))
         raise
-    data = _extract_json_object(response.content)
+    data = _extract_json_object(response_text)
     data["country"] = country_label
     data["visa_type"] = visa_type_label
 
@@ -769,7 +773,7 @@ Rules:
         assessment_confidence = min(95.0, max(45.0, eligibility_score * 0.7 + (5.0 if context else 0.0)))
 
     if not formatted_answer:
-        formatted_answer = response.content
+        formatted_answer = response_text
 
     decision = _decision_label(eligibility_score)
     formatted_answer = f"DECISION\n{decision}\n\n" + formatted_answer
