@@ -1,5 +1,11 @@
 import re   # Used for keyword (pattern) matching
+import os
+import streamlit as st
 
+# 🔥 Load secrets into environment
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
 # ------------------ QUERY EXPANSION ------------------
 def expand_query(question):
     # Prompt to LLM to generate similar questions
