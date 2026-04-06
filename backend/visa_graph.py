@@ -1,12 +1,9 @@
 import os
+import requests
 import chromadb
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
 from typing_extensions import TypedDict
-try:
-    from groq import Groq
-except Exception:
-    Groq = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -120,14 +117,9 @@ def generate_answer(state: State):
     if not context:
         return {"answer": f"I could not find policy documents for {country}. Please try rephrasing your question."}
 
-    if Groq is None:
-        return {"answer": "Groq SDK is not installed. Run: pip install groq==0.9.0"}
-
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         return {"answer": "GROQ_API_KEY is missing. Add it to your environment or Streamlit secrets."}
-
-    client = Groq(api_key=api_key)
 
     prompt = f"""You are an expert visa assistant helping users understand visa policies.
 
@@ -142,12 +134,24 @@ Instructions:
 - If the context does not contain the answer, say so clearly.
 - Be clear and concise."""
 
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-    )
-    return {"answer": response.choices[0].message.content}
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        return {"answer": data["choices"][0]["message"]["content"]}
+    except Exception as exc:
+        return {"answer": f"LLM request failed: {exc}"}
 
 
 builder = StateGraph(State)

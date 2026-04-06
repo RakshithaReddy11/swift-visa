@@ -143,9 +143,9 @@ To switch models, edit `GROQ_MODEL` in `.env`.
 
 ## Troubleshooting
 
-### "Groq SDK not installed"
+### "Requests not installed"
 ```bash
-pip install groq==0.9.0
+pip install requests
 ```
 
 ### Streamlit port 8501 already in use

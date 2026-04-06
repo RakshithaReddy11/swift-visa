@@ -59,13 +59,9 @@ def keyword_search(question, collection, n_results=10):
 import os
 import json
 import time
+import requests
 import chromadb
 from dotenv import load_dotenv
-
-try:
-    from groq import Groq
-except Exception:
-    Groq = None
 from langchain.memory import ConversationBufferMemory
 load_dotenv()   # Load API keys
 
@@ -138,28 +134,36 @@ def _retry_wait_seconds(error_text, default_seconds=10):
         return default_seconds
 
 
-def _invoke_llm(prompt, retries=0):
-    """Invoke LLM using direct Groq SDK."""
+def _invoke_llm(prompt, retries=1):
+    """Invoke LLM using direct Groq REST API."""
     if LLM_PROVIDER != "groq":
         raise RuntimeError("LLM_PROVIDER must be set to groq.")
-
-    if Groq is None:
-        raise RuntimeError(
-            "LLM_PROVIDER=groq requires groq SDK. "
-            "Install with: pip install groq==0.9.0"
-        )
 
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY is missing.")
 
-    client = Groq(api_key=api_key)
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-    )
-    return response.choices[0].message.content
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0,
+    }
+
+    last_error = "unknown error"
+    for _ in range(retries + 1):
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=30)
+            res.raise_for_status()
+            return res.json()["choices"][0]["message"]["content"]
+        except Exception as exc:
+            last_error = str(exc)
+
+    raise RuntimeError(f"LLM failed: {last_error}")
 
 
 # ------------------ CONFIDENCE SCORE ------------------
