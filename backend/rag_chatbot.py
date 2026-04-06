@@ -59,13 +59,11 @@ def keyword_search(question, collection, n_results=10):
 import os
 import json
 import time
-import importlib
 import chromadb
 from dotenv import load_dotenv
 
 try:
-    _langchain_groq = importlib.import_module("langchain_groq")
-    ChatGroq = getattr(_langchain_groq, "ChatGroq", None)
+    from langchain_groq import ChatGroq
 except Exception:
     ChatGroq = None
 from langchain_core.messages import HumanMessage
@@ -156,7 +154,11 @@ def _invoke_llm(prompt, retries=0):
 
     for model_name in _ordered_unique(GROQ_MODEL_CANDIDATES):
         try:
-            llm = ChatGroq(model=model_name, temperature=0)
+            llm = ChatGroq(
+                groq_api_key=os.getenv("GROQ_API_KEY"),
+                model=model_name,
+                temperature=0,
+            )
             return llm.invoke([HumanMessage(content=prompt)])
         except Exception as exc:
             last_exc = exc
