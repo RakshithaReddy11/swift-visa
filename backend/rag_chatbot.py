@@ -63,8 +63,7 @@ try:
 except Exception:
     ChatGroq = None
 from langchain_core.messages import HumanMessage
-from langchain_classic.memory import ConversationBufferMemory
-
+from langchain.memory import ConversationBufferMemory
 load_dotenv()   # Load API keys
 
 # Enable tracing (for debugging / monitoring)
