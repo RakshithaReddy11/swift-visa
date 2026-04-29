@@ -1,4 +1,4 @@
-# SwiftVisa - AI-Powered Visa Eligibility Checker
+# SwiftVisa - AI-Based Visa Eligibility Screening Agent
 
 An intelligent visa eligibility assessment platform using RAG (Retrieval-Augmented Generation) and LLM technology to help users understand their visa eligibility across USA, UK, and Australia.
 
